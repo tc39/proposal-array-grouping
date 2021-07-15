@@ -77,7 +77,7 @@ location: https://tc39.es/proposal-array-grouping/
   <ins class="block">
   <emu-clause id="sec-%typedarray%.prototype.groupBy">
     <h1>%TypedArray%.prototype.groupBy ( _callbackfn_ [ , _thisArg_ ] )</h1>
-    <p>The interpretation and use of the arguments of %TypedArray%`.prototype.groupBy` are the same as for `Array.prototype.groupBy` as defined in <emu-xref href="#sec-array.prototype.groupBy"></emu-xref>.</p>
+    <p>The interpretation and use of the arguments of %TypedArray%`.prototype.groupBy` are the same as for `Array.prototype.groupBy` as defined in <emu-xref href="#sec-array.prototype.groupby"></emu-xref>.</p>
     <p>When the `groupBy` method is called, the following steps are taken:</p>
     <emu-alg>
       1. Let _O_ be the *this* value.
