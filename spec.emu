@@ -43,12 +43,13 @@ location: https://tc39.es/proposal-array-grouping/
         1. Let _Pk_ be ! ToString(_k_).
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, _k_, _O_ &raquo;)).
+        1. Let _group_ be ~empty~.
         1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
           1. If ! SameValueNonNumeric(_g_.[[Key]], _propertyKey_) is *true*, then
-            1. Let _group_ be _g_.
+            1. Set _group_ be _g_.
         1. If _group_ is ~empty~, then
           1. Let _elements_ be a new empty List.
-          1. Let _group_ be the Record { [[Key]]: _propertyKey_, [[Elements]]: _elements_ }.
+          1. Set _group_ be the Record { [[Key]]: _propertyKey_, [[Elements]]: _elements_ }.
           1. Append _group_ as the last element of _groups_.
         1. Append _kValue_ as the last element of _group_.[[Elements]].
         1. Set _k_ to _k_ + 1.
