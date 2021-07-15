@@ -40,7 +40,7 @@ location: https://tc39.es/proposal-array-grouping/
       1. Let _k_ be 0.
       1. Let _groups_ be a new empty List.
       1. Repeat, while _k_ &lt; _len_
-        1. Let _Pk_ be ! ToString(_k_).
+        1. Let _Pk_ be ! ToString(𝔽(_k_)).
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, _k_, _O_ &raquo;)).
         1. Let _group_ be ~empty~.
@@ -67,6 +67,50 @@ location: https://tc39.es/proposal-array-grouping/
     <emu-note>
       <p>The `groupBy` function is intentionally generic; it does not require that its *this* value be an Array object. Therefore it can be transferred to other kinds of objects for use as a method.</p>
     </emu-note>
+  </emu-clause>
+  </ins>
+</emu-clause>
+
+<emu-clause id="sec-typedarray-objects">
+  <h1>TypedArray Objects</h1>
+
+  <ins class="block">
+  <emu-clause id="sec-%typedarray%.prototype.groupBy">
+    <h1>%TypedArray%.prototype.groupBy ( _callbackfn_ [ , _thisArg_ ] )</h1>
+    <p>The interpretation and use of the arguments of %TypedArray%`.prototype.groupBy` are the same as for `Array.prototype.groupBy` as defined in <emu-xref href="#sec-array.prototype.groupby"></emu-xref>.</p>
+    <p>When the `groupBy` method is called, the following steps are taken:</p>
+    <emu-alg>
+      1. Let _O_ be the *this* value.
+      1. Perform ? ValidateTypedArray(_O_).
+      1. Let _len_ be _O_.[[ArrayLength]].
+      1. If IsCallable(_callbackfn_) is *false*, throw a *TypeError* exception.
+      1. Let _k_ be 0.
+      1. Let _groups_ be a new empty List.
+      1. Repeat, while _k_ &lt; _len_
+        1. Let _Pk_ be ! ToString(𝔽(_k_)).
+        1. Let _kValue_ be ! Get(_O_, _Pk_).
+        1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, _k_, _O_ &raquo;)).
+        1. Let _group_ be ~empty~.
+        1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
+          1. If ! SameValueNonNumeric(_g_.[[Key]], _propertyKey_) is *true*, then
+            1. Set _group_ to _g_.
+        1. If _group_ is ~empty~, then
+          1. Let _elements_ be a new empty List.
+          1. Set _group_ to the Record { [[Key]]: _propertyKey_, [[Elements]]: _elements_ }.
+          1. Append _group_ as the last element of _groups_.
+        1. Append _kValue_ as the last element of _group_.[[Elements]].
+        1. Set _k_ to _k_ + 1.
+      1. Let _obj_ be ! OrdinaryObjectCreate(*null*).
+      1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
+        1. Let _len_ be the number of elements in _g_.[[Elements]].
+        1. Let _elements_ be ? TypedArraySpeciesCreate(_O_, &laquo; 𝔽(_len_) &raquo;).
+        1. Let _i_ be 0.
+        1. For each element _e_ of _g_.[[Elements]], do
+          1. Perform ! Set(_elements_, ! ToString(𝔽(_i_)), _e_, *true*).
+          1. Set _i_ to _i_ + 1.
+        1. Perform ! CreateDataPropertyOrThrow(_obj_, _g_.[[Key]], _elements_).
+      1. Return _obj_.
+    </emu-alg>
   </emu-clause>
   </ins>
 </emu-clause>
