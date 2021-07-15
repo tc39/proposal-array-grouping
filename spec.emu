@@ -87,7 +87,7 @@ location: https://tc39.es/proposal-array-grouping/
       1. Let _k_ be 0.
       1. Let _groups_ be a new empty List.
       1. Repeat, while _k_ &lt; _len_
-        1. Let _Pk_ be ! ToString(_k_).
+        1. Let _Pk_ be ! ToString(𝔽(_k_)).
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, _k_, _O_ &raquo;)).
         1. Let _group_ be ~empty~.
