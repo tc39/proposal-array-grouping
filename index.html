@@ -1027,6 +1027,37 @@ function makeLinkToId(id) {
   return (targetSec === 'index' ? './' : targetSec + '.html') + hash;
 }
 
+function doShortcut(e) {
+  if (!(e.target instanceof HTMLElement)) {
+    return;
+  }
+  let target = e.target;
+  let name = target.nodeName.toLowerCase();
+  if (name === 'textarea' || name === 'input' || name === 'select' || target.isContentEditable) {
+    return;
+  }
+  if (e.key === 'm' && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && usesMultipage) {
+    let pathParts = location.pathname.split('/');
+    let hash = location.hash;
+    if (pathParts[pathParts.length - 2] === 'multipage') {
+      if (hash === '') {
+        let sectionName = pathParts[pathParts.length - 1];
+        if (sectionName.endsWith('.html')) {
+          sectionName = sectionName.slice(0, -5);
+        }
+        if (idToSection['sec-' + sectionName] !== undefined) {
+          hash = '#sec-' + sectionName;
+        }
+      }
+      location = pathParts.slice(0, -2).join('/') + '/' + hash;
+    } else {
+      location = 'multipage/' + hash;
+    }
+  }
+}
+
+document.addEventListener('keypress', doShortcut);
+
 document.addEventListener('DOMContentLoaded', () => {
   Toolbox.init();
   referencePane.init();
@@ -1064,7 +1095,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let sdoMap = JSON.parse(`{}`);
-let biblio = JSON.parse(`{"refsByClause":{"sec-demo-clause":["_ref_0"]},"entries":[{"type":"clause","id":"sec-demo-clause","aoid":null,"titleHTML":"This is an emu-clause","number":"1","referencingIds":[],"key":"This is an emu-clause"},{"type":"clause","id":"sec-copyright-and-software-license","aoid":null,"titleHTML":"Copyright &amp; Software License","number":"A","referencingIds":[],"key":"Copyright & Software License"}]}`);</script><style>body {
+let biblio = JSON.parse(`{"refsByClause":{"sec-demo-clause":["_ref_0"]},"entries":[{"type":"clause","id":"sec-demo-clause","aoid":null,"titleHTML":"This is an emu-clause","number":"1","referencingIds":[],"key":"This is an emu-clause"},{"type":"clause","id":"sec-copyright-and-software-license","aoid":null,"titleHTML":"Copyright &amp; Software License","number":"A","referencingIds":[],"key":"Copyright & Software License"}]}`);
+;let usesMultipage = false</script><style>body {
   display: flex;
   font-size: 18px;
   line-height: 1.5;
@@ -2208,7 +2240,7 @@ li.menu-search-result-term:before {
 .normative-optional-tag a {
   color: #884400;
 }
-</style></head><body><div id="menu-toggle">☰</div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-demo-clause" title="This is an emu-clause"><span class="secnum">1</span> This is an emu-clause</a></li><li><span class="item-toggle-none"></span><a href="#sec-copyright-and-software-license" title="Copyright &amp; Software License"><span class="secnum">A</span> Copyright &amp; Software License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage -1 Draft / March 29, 2021</h1><h1 class="title">Proposal Title Goes Here</h1>
+</style></head><body><div id="menu-toggle">☰</div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-demo-clause" title="This is an emu-clause"><span class="secnum">1</span> This is an emu-clause</a></li><li><span class="item-toggle-none"></span><a href="#sec-copyright-and-software-license" title="Copyright &amp; Software License"><span class="secnum">A</span> Copyright &amp; Software License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage -1 Draft / July 15, 2021</h1><h1 class="title">Proposal Title Goes Here</h1>
 
 <emu-clause id="sec-demo-clause">
   <h1><span class="secnum">1</span> This is an emu-clause</h1>
