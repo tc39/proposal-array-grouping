@@ -30,6 +30,7 @@ location: https://tc39.es/proposal-array-grouping/
       <p>_callbackfn_ is called with three arguments: the value of the element, the index of the element, and the object being traversed.</p>
       <p>`groupBy` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
       <p>The range of elements processed by `groupBy` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupBy` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupBy` visits them; elements that are deleted after the call to `groupBy` begins and before being visited are not visited.</p>
+      <p>The return value of `groupBy` is an object that does not inherit from _Object.prototype_.</p>
     </emu-note>
     <p>When the `groupBy` method is called with one or two arguments, the following steps are taken:</p>
     <emu-alg>
@@ -37,7 +38,7 @@ location: https://tc39.es/proposal-array-grouping/
       1. Let _len_ be ? LengthOfArrayLike(_O_).
       1. If IsCallable(_callbackfn_) is *false*, throw a *TypeError* exception.
       1. Let _k_ be 0.
-      1. Let _obj_ be ! OrdinaryObjectCreate(%Object.prototype%).
+      1. Let _obj_ be ! OrdinaryObjectCreate(null).
       1. Assert: _obj_ is an extensible ordinary object with no own properties.
       1. Repeat, while _k_ &lt; _len_
         1. Let _Pk_ be ! ToString(_k_).
