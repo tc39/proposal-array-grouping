@@ -55,7 +55,12 @@ location: https://tc39.es/proposal-array-grouping/
         1. Set _k_ to _k_ + 1.
       1. Let _obj_ be ! OrdinaryObjectCreate(*null*).
       1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
-        1. Let _elements_ be ! CreateArrayFromList(_g_.[[Elements]]).
+        1. Let _len_ be the number of elements in _g_.[[Elements]].
+        1. Let _elements_ be ? ArraySpeciesCreate(_O_, _len_).
+        1. Let _i_ be 0.
+        1. For each element _e_ of _g_.[[Elements]], do
+          1. Perform ? CreateDataPropertyOrThrow(_elements_, ! ToString(𝔽(_i_)), _e_).
+          1. Set _i_ to _i_ + 1.
         1. Perform ! CreateDataPropertyOrThrow(_obj_, _g_.[[Key]], _elements_).
       1. Return _obj_.
     </emu-alg>
