@@ -38,20 +38,30 @@ location: https://tc39.es/proposal-array-grouping/
       1. Let _len_ be ? LengthOfArrayLike(_O_).
       1. If IsCallable(_callbackfn_) is *false*, throw a *TypeError* exception.
       1. Let _k_ be 0.
-      1. Let _obj_ be ! OrdinaryObjectCreate(null).
-      1. Assert: _obj_ is an extensible ordinary object with no own properties.
+      1. Let _groups_ be a new empty List.
       1. Repeat, while _k_ &lt; _len_
         1. Let _Pk_ be ! ToString(_k_).
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, _k_, _O_ &raquo;)).
-        1. Let _seen_ be ? HasOwnProperty(_obj_, _propertyKey_).
-        1. If _seen_ is *true*, then
-          1. Let _arr_ be ! Get(_obj_, _propertyKey_).
-        1. Else
-          1. Let _arr_ be ? ArraySpeciesCreate(O, 0).
-          1. Perform ! CreateDataPropertyOrThrow(_obj_, _propertyKey_, _arr_).
-        1. Perform ? Call(%Array.prototype.push%, _arr_, _kValue_).
+        1. Let _group_ be ~empty~.
+        1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
+          1. If ! SameValueNonNumeric(_g_.[[Key]], _propertyKey_) is *true*, then
+            1. Set _group_ to _g_.
+        1. If _group_ is ~empty~, then
+          1. Let _elements_ be a new empty List.
+          1. Set _group_ to the Record { [[Key]]: _propertyKey_, [[Elements]]: _elements_ }.
+          1. Append _group_ as the last element of _groups_.
+        1. Append _kValue_ as the last element of _group_.[[Elements]].
         1. Set _k_ to _k_ + 1.
+      1. Let _obj_ be ! OrdinaryObjectCreate(*null*).
+      1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
+        1. Let _len_ be the number of elements in _g_.[[Elements]].
+        1. Let _elements_ be ? ArraySpeciesCreate(_O_, _len_).
+        1. Let _i_ be 0.
+        1. For each element _e_ of _g_.[[Elements]], do
+          1. Perform ? CreateDataPropertyOrThrow(_elements_, ! ToString(𝔽(_i_)), _e_).
+          1. Set _i_ to _i_ + 1.
+        1. Perform ! CreateDataPropertyOrThrow(_obj_, _g_.[[Key]], _elements_).
       1. Return _obj_.
     </emu-alg>
     <emu-note>
