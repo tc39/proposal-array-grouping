@@ -6,7 +6,7 @@ A proposal to make grouping of items in an array easier.
 const array = [1, 2, 3, 4, 5];
 
 // groupBy groups items by arbitrary key.
-// In this case, the we're grouping on even/odd keys
+// In this case, we're grouping by even/odd keys
 array.groupBy(i => {
   return i % 2 === 0 ? 'even': 'odd';
 });
