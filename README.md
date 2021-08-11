@@ -28,7 +28,7 @@ TODO
 
 ## Polyfill
 
-Pending polyfill implementations...
+- A polyfill is available in the [core-js](https://github.com/zloirock/core-js) library. You can find it in the [ECMAScript proposals section](https://github.com/zloirock/core-js#array-grouping).
 
 ## Related
 
