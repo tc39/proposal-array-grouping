@@ -87,6 +87,7 @@ location: https://tc39.es/proposal-array-grouping/
         1. Let _Pk_ be ! ToString(𝔽(_k_)).
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _key_ be ? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_), _O_ &raquo;).
+        1. If _key_ is *-0*<sub>𝔽</sub>, set _key_ to *+0*<sub>𝔽</sub>.
         1. Let _group_ be ~empty~.
         1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
           1. If ! SameValueZero(_g_.[[Key]], _key_) is *true*, then
