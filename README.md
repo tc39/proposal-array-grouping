@@ -20,7 +20,7 @@ array.groupBy(i => {
 
 ## Status
 
-Current [Stage](https://tc39.es/process-document/): 1
+Current [Stage](https://tc39.es/process-document/): 2
 
 ## Motivation
 
