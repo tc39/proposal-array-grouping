@@ -64,4 +64,49 @@ location: https://tc39.es/proposal-array-grouping/
     </emu-note>
   </emu-clause>
   </ins>
+
+  <ins class="block">
+  <emu-clause id="sec-array.prototype.groupbymap">
+    <h1>Array.prototype.groupByMap ( _callbackfn_ [ , _thisArg_ ] )</h1>
+    <emu-note>
+      <p>_callbackfn_ should be a function that accepts three arguments and returns any value. `groupByMap` calls _callbackfn_ once for each element in the array, in ascending order, and constructs a new Map of arrays, where the key is the return value and array is filled with the items that return that key.</p>
+      <p>If a _thisArg_ parameter is provided, it will be used as the *this* value for each invocation of _callbackfn_. If it is not provided, *undefined* is used instead.</p>
+      <p>_callbackfn_ is called with three arguments: the value of the element, the index of the element, and the object being traversed.</p>
+      <p>`groupByMap` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
+      <p>The range of elements processed by `groupByMap` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupByMap` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupByMap` visits them; elements that are deleted after the call to `groupByMap` begins and before being visited are not visited.</p>
+      <p>The return value of `groupByMap` is a Map.</p>
+    </emu-note>
+    <p>When the `groupByMap` method is called with one or two arguments, the following steps are taken:</p>
+    <emu-alg>
+      1. Let _O_ be ? ToObject(*this* value).
+      1. Let _len_ be ? LengthOfArrayLike(_O_).
+      1. If IsCallable(_callbackfn_) is *false*, throw a *TypeError* exception.
+      1. Let _k_ be 0.
+      1. Let _groups_ be a new empty List.
+      1. Repeat, while _k_ &lt; _len_
+        1. Let _Pk_ be ! ToString(𝔽(_k_)).
+        1. Let _kValue_ be ? Get(_O_, _Pk_).
+        1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_), _O_ &raquo;)).
+        1. Let _group_ be ~empty~.
+        1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
+          1. If ! SameValueNonNumeric(_g_.[[Key]], _propertyKey_) is *true*, then
+            1. Set _group_ to _g_.
+        1. If _group_ is ~empty~, then
+          1. Let _elements_ be a new empty List.
+          1. Set _group_ to the Record { [[Key]]: _propertyKey_, [[Elements]]: _elements_ }.
+          1. Append _group_ as the last element of _groups_.
+        1. Append _kValue_ as the last element of _group_.[[Elements]].
+        1. Set _k_ to _k_ + 1.
+      1. Let _map_ be ! Construct(%Map%).
+      1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
+        1. Let _elements_ be ! CreateArrayFromList(_g_.[[Elements]]).
+        1. Let _entry_ be the Record { [[Key]]: _g_.[[Key]], [[Value]]: _elements_ }.
+        1. Append _entry_ as the last element of _map_.[[MapData]].
+      1. Return _map_.
+    </emu-alg>
+    <emu-note>
+      <p>The `groupBy` function is intentionally generic; it does not require that its *this* value be an Array object. Therefore it can be transferred to other kinds of objects for use as a method.</p>
+    </emu-note>
+  </emu-clause>
+  </ins>
 </emu-clause>
