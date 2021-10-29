@@ -43,15 +43,7 @@ location: https://tc39.es/proposal-array-grouping/
         1. Let _Pk_ be ! ToString(𝔽(_k_)).
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_), _O_ &raquo;)).
-        1. Let _group_ be ~empty~.
-        1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
-          1. If ! SameValueNonNumeric(_g_.[[Key]], _propertyKey_) is *true*, then
-            1. Set _group_ to _g_.
-        1. If _group_ is ~empty~, then
-          1. Let _elements_ be a new empty List.
-          1. Set _group_ to the Record { [[Key]]: _propertyKey_, [[Elements]]: _elements_ }.
-          1. Append _group_ as the last element of _groups_.
-        1. Append _kValue_ as the last element of _group_.[[Elements]].
+        1. Perform ! AddValueToKeyedGroup(_groups_, _propertyKey_, _kValue_).
         1. Set _k_ to _k_ + 1.
       1. Let _obj_ be ! OrdinaryObjectCreate(*null*).
       1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
@@ -88,15 +80,7 @@ location: https://tc39.es/proposal-array-grouping/
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _key_ be ? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_), _O_ &raquo;).
         1. If _key_ is *-0*<sub>𝔽</sub>, set _key_ to *+0*<sub>𝔽</sub>.
-        1. Let _group_ be ~empty~.
-        1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
-          1. If ! SameValueZero(_g_.[[Key]], _key_) is *true*, then
-            1. Set _group_ to _g_.
-        1. If _group_ is ~empty~, then
-          1. Let _elements_ be a new empty List.
-          1. Set _group_ to the Record { [[Key]]: _key_, [[Elements]]: _elements_ }.
-          1. Append _group_ as the last element of _groups_.
-        1. Append _kValue_ as the last element of _group_.[[Elements]].
+        1. Perform ! AddValueToKeyedGroup(_groups_, _key_, _kValue_).
         1. Set _k_ to _k_ + 1.
       1. Let _map_ be ! Construct(%Map%).
       1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
@@ -108,6 +92,27 @@ location: https://tc39.es/proposal-array-grouping/
     <emu-note>
       <p>The `groupBy` function is intentionally generic; it does not require that its *this* value be an Array object. Therefore it can be transferred to other kinds of objects for use as a method.</p>
     </emu-note>
+  </emu-clause>
+
+  <emu-clause id="sec-add-value-to-keyed-group" type="abstract operation">
+    <h1>
+      AddValueToKeyedGroup (
+        _groups_: a List of Records that have [[Key]] and [[Elements]] fields,
+        _key_: an ECMAScript language value,
+        _value_: an ECMAScript language value,
+      )
+    </h1>
+    <emu-alg>
+        1. Let _group_ be ~empty~.
+        1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
+          1. If ! SameValueZero(_g_.[[Key]], _key_) is *true*, then
+            1. Set _group_ to _g_.
+        1. If _group_ is ~empty~, then
+          1. Let _elements_ be a new empty List.
+          1. Set _group_ to the Record { [[Key]]: _key_, [[Elements]]: _elements_ }.
+          1. Append _group_ as the last element of _groups_.
+        1. Append _value_ as the last element of _group_.[[Elements]].
+    </emu-alg>
   </emu-clause>
   </ins>
 </emu-clause>
