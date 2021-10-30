@@ -29,7 +29,7 @@ location: https://tc39.es/proposal-array-grouping/
       <p>If a _thisArg_ parameter is provided, it will be used as the *this* value for each invocation of _callbackfn_. If it is not provided, *undefined* is used instead.</p>
       <p>_callbackfn_ is called with three arguments: the value of the element, the index of the element, and the object being traversed.</p>
       <p>`groupBy` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
-      <p>The range of elements processed by `groupBy` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupBy` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupBy` visits them; elements that are deleted after the call to `groupBy` begins and before being visited are not visited.</p>
+      <p>The range of elements processed by `groupBy` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupBy` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupBy` visits them; elements that are deleted after the call to `groupBy` begins and before being visited are still visited and are either looked up from the prototype or are *undefined*.</p>
       <p>The return value of `groupBy` is an object that does not inherit from _Object.prototype_.</p>
     </emu-note>
     <p>When the `groupBy` method is called with one or two arguments, the following steps are taken:</p>
@@ -73,7 +73,7 @@ location: https://tc39.es/proposal-array-grouping/
       <p>If a _thisArg_ parameter is provided, it will be used as the *this* value for each invocation of _callbackfn_. If it is not provided, *undefined* is used instead.</p>
       <p>_callbackfn_ is called with three arguments: the value of the element, the index of the element, and the object being traversed.</p>
       <p>`groupByMap` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
-      <p>The range of elements processed by `groupByMap` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupByMap` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupByMap` visits them; elements that are deleted after the call to `groupByMap` begins and before being visited are not visited.</p>
+      <p>The range of elements processed by `groupByMap` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupByMap` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupByMap` visits them; elements that are deleted after the call to `groupByMap` begins and before being visited are still visited and are either looked up from the prototype or are *undefined*.</p>
       <p>The return value of `groupByMap` is a Map.</p>
     </emu-note>
     <p>When the `groupByMap` method is called with one or two arguments, the following steps are taken:</p>
