@@ -7,8 +7,8 @@ const array = [1, 2, 3, 4, 5];
 
 // groupBy groups items by arbitrary key.
 // In this case, we're grouping by even/odd keys
-array.groupBy(i => {
-  return i % 2 === 0 ? 'even': 'odd';
+array.groupBy((num, index, array) => {
+  return num % 2 === 0 ? 'even': 'odd';
 });
 
 // =>  { odd: [1, 3, 5], even: [2, 4] }
