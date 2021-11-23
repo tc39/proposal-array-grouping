@@ -102,6 +102,8 @@ location: https://tc39.es/proposal-array-grouping/
         _value_: an ECMAScript language value,
       )
     </h1>
+    <dl class="header">
+    </dl>
     <emu-alg>
         1. If _groups_ contains a Record _g_ such that ! SameValueZero(_g_.[[Key]], _key_) is *true*, then
           1. Assert: exactly one element of _groups_ meets this criteria.
