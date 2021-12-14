@@ -940,7 +940,7 @@ let Toolbox = {
   },
 
   updateReferences() {
-    this.$refsLink.textContent = `References (${this.entry.referencingIds.length})`;
+    this.$refsLink.textContent = `References (${(this.entry.referencingIds || []).length})`;
   },
 
   activateIfMouseOver(e) {
@@ -1198,7 +1198,7 @@ span.e-user-code::before {
   line-height: 1;
   vertical-align: text-top;
   text-transform: uppercase;
-  font-family: "Comic Code", sans-serif;
+  font-family: 'Comic Code', sans-serif;
   font-weight: 900;
   font-size: x-small;
 }
@@ -2362,7 +2362,7 @@ li.menu-search-result-term:before {
 </style></head><body><div id="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; stroke:currentColor" viewBox="0 0 120 120">
       <title>Menu</title>
       <path stroke-width="10" stroke-linecap="round" d="M30,60 h60  M30,30 m0,5 h60  M30,90 m0,-5 h60"></path>
-    </svg></div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-scope" title="Scope"><span class="secnum">1</span> Scope</a></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-array-prototype-object" title="Properties of the Array Prototype Object (22.1.3)"><span class="secnum">2</span> Properties of the Array Prototype Object (22.1.3)</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-array.prototype.groupby" title="Array.prototype.groupBy ( callbackfn [ , thisArg ] )"><span class="secnum">2.1</span> Array.prototype.groupBy ( <var>callbackfn</var> [ , <var>thisArg</var> ] )</a></li><li><span class="item-toggle-none"></span><a href="#sec-array.prototype.groupbymap" title="Array.prototype.groupByMap ( callbackfn [ , thisArg ] )"><span class="secnum">2.2</span> Array.prototype.groupByMap ( <var>callbackfn</var> [ , <var>thisArg</var> ] )</a></li><li><span class="item-toggle-none"></span><a href="#sec-add-value-to-keyed-group" title="AddValueToKeyedGroup ( groups, key, value )"><span class="secnum">2.3</span> AddValueToKeyedGroup ( <var>groups</var>, <var>key</var>, <var>value</var> )</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-copyright-and-software-license" title="Copyright &amp; Software License"><span class="secnum">A</span> Copyright &amp; Software License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 2 Draft / November 24, 2021</h1><h1 class="title">Array Grouping</h1>
+    </svg></div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-scope" title="Scope"><span class="secnum">1</span> Scope</a></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-array-prototype-object" title="Properties of the Array Prototype Object (22.1.3)"><span class="secnum">2</span> Properties of the Array Prototype Object (22.1.3)</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-array.prototype.groupby" title="Array.prototype.groupBy ( callbackfn [ , thisArg ] )"><span class="secnum">2.1</span> Array.prototype.groupBy ( <var>callbackfn</var> [ , <var>thisArg</var> ] )</a></li><li><span class="item-toggle-none"></span><a href="#sec-array.prototype.groupbymap" title="Array.prototype.groupByMap ( callbackfn [ , thisArg ] )"><span class="secnum">2.2</span> Array.prototype.groupByMap ( <var>callbackfn</var> [ , <var>thisArg</var> ] )</a></li><li><span class="item-toggle-none"></span><a href="#sec-add-value-to-keyed-group" title="AddValueToKeyedGroup ( groups, key, value )"><span class="secnum">2.3</span> AddValueToKeyedGroup ( <var>groups</var>, <var>key</var>, <var>value</var> )</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-copyright-and-software-license" title="Copyright &amp; Software License"><span class="secnum">A</span> Copyright &amp; Software License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 2 Draft / December 14, 2021</h1><h1 class="title">Array Grouping</h1>
 
 <emu-clause id="sec-scope">
   <h1><span class="secnum">1</span> Scope</h1>
