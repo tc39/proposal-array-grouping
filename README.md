@@ -12,6 +12,16 @@ array.groupBy((num, index, array) => {
 });
 
 // =>  { odd: [1, 3, 5], even: [2, 4] }
+
+// groupByToMap returns items in a Map, and is useful for grouping using
+// an object key.
+const odd  = { odd: true };
+const even = { even: true };
+array.groupByToMap((num, index, array) => {
+  return num % 2 === 0 ? even: odd;
+});
+
+// =>  Map { {odd: true}: [1, 3, 5], {even: true}: [2, 4] }
 ```
 
 ## Champions
@@ -30,7 +40,7 @@ thought of map-group-reduce). The ability to combine like data into
 groups allows developers to compute higher order datasets, like the
 average age of a cohort or daily LCP values for a webpage.
 
-Two methods are offered, `groupBy` and `groupByMap`. The first returns a
+Two methods are offered, `groupBy` and `groupByToMap`. The first returns a
 null-prototype object, which allows ergonomic destructuring and prevents
 accidental collisions with global Object properties. The second returns
 a regular `Map` instance, which allows grouping on complex key types
