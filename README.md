@@ -30,7 +30,7 @@ array.groupByToMap((num, index, array) => {
 
 ## Status
 
-Current [Stage](https://tc39.es/process-document/): 2
+Current [Stage](https://tc39.es/process-document/): 3
 
 ## Motivation
 
