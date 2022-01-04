@@ -130,7 +130,7 @@ location: https://tc39.es/proposal-array-grouping/
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"flat"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"flatMap"*, *true*).
       1. <ins>Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"groupBy"*, *true*).</ins>
-      1. <ins>Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"groupByMap"*, *true*).</ins>
+      1. <ins>Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"groupByToMap"*, *true*).</ins>
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"includes"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"keys"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"values"*, *true*).
