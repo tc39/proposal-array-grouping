@@ -43,11 +43,11 @@ location: https://tc39.es/proposal-array-grouping/
         1. Let _Pk_ be ! ToString(𝔽(_k_)).
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _propertyKey_ be ? ToPropertyKey(? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_), _O_ &raquo;)).
-        1. Perform ! AddValueToKeyedGroup(_groups_, _propertyKey_, _kValue_).
+        1. Perform AddValueToKeyedGroup(_groups_, _propertyKey_, _kValue_).
         1. Set _k_ to _k_ + 1.
-      1. Let _obj_ be ! OrdinaryObjectCreate(*null*).
+      1. Let _obj_ be OrdinaryObjectCreate(*null*).
       1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
-        1. Let _elements_ be ! CreateArrayFromList(_g_.[[Elements]]).
+        1. Let _elements_ be CreateArrayFromList(_g_.[[Elements]]).
         1. Perform ! CreateDataPropertyOrThrow(_obj_, _g_.[[Key]], _elements_).
       1. Return _obj_.
     </emu-alg>
@@ -80,11 +80,11 @@ location: https://tc39.es/proposal-array-grouping/
         1. Let _kValue_ be ? Get(_O_, _Pk_).
         1. Let _key_ be ? Call(_callbackfn_, _thisArg_, &laquo; _kValue_, 𝔽(_k_), _O_ &raquo;).
         1. If _key_ is *-0*<sub>𝔽</sub>, set _key_ to *+0*<sub>𝔽</sub>.
-        1. Perform ! AddValueToKeyedGroup(_groups_, _key_, _kValue_).
+        1. Perform AddValueToKeyedGroup(_groups_, _key_, _kValue_).
         1. Set _k_ to _k_ + 1.
       1. Let _map_ be ! Construct(%Map%).
       1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
-        1. Let _elements_ be ! CreateArrayFromList(_g_.[[Elements]]).
+        1. Let _elements_ be CreateArrayFromList(_g_.[[Elements]]).
         1. Let _entry_ be the Record { [[Key]]: _g_.[[Key]], [[Value]]: _elements_ }.
         1. Append _entry_ as the last element of _map_.[[MapData]].
       1. Return _map_.
@@ -100,18 +100,19 @@ location: https://tc39.es/proposal-array-grouping/
         _groups_: a List of Records that have [[Key]] and [[Elements]] fields,
         _key_: an ECMAScript language value,
         _value_: an ECMAScript language value,
-      )
+      ): ~unused~
     </h1>
     <dl class="header">
     </dl>
     <emu-alg>
         1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
-          1. If ! SameValue(_g_.[[Key]], _key_) is *true*, then
+          1. If SameValue(_g_.[[Key]], _key_) is *true*, then
             1. Assert: exactly one element of _groups_ meets this criteria.
             1. Append _value_ as the last element of _g_.[[Elements]].
-            1. Return.
+            1. Return ~unused~.
         1. Let _group_ be the Record { [[Key]]: _key_, [[Elements]]: &laquo; _value_ &raquo; }.
         1. Append _group_ as the last element of _groups_.
+        1. Return ~unused~.
     </emu-alg>
   </emu-clause>
   </ins>
@@ -120,7 +121,7 @@ location: https://tc39.es/proposal-array-grouping/
     <h1>Array.prototype [ @@unscopables ]</h1>
     <p>The initial value of the @@unscopables data property is an object created by the following steps:</p>
     <emu-alg>
-      1. Let _unscopableList_ be ! OrdinaryObjectCreate(*null*).
+      1. Let _unscopableList_ be OrdinaryObjectCreate(*null*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"at"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"copyWithin"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"entries"*, *true*).
