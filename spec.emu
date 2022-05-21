@@ -23,16 +23,16 @@ location: https://tc39.es/proposal-array-grouping/
 
   <ins class="block">
   <emu-clause id="sec-array.prototype.groupby">
-    <h1>Array.prototype.groupBy ( _callbackfn_ [ , _thisArg_ ] )</h1>
+    <h1>Array.prototype.group ( _callbackfn_ [ , _thisArg_ ] )</h1>
     <emu-note>
-      <p>_callbackfn_ should be a function that accepts three arguments. `groupBy` calls _callbackfn_ once for each element in the array, in ascending order, and constructs a new object of arrays. Each value returned by _callbackfn_ is coerced to a property key, and the associated element is included in the array in the constructed object according to this property key.</p>
+      <p>_callbackfn_ should be a function that accepts three arguments. `group` calls _callbackfn_ once for each element in the array, in ascending order, and constructs a new object of arrays. Each value returned by _callbackfn_ is coerced to a property key, and the associated element is included in the array in the constructed object according to this property key.</p>
       <p>If a _thisArg_ parameter is provided, it will be used as the *this* value for each invocation of _callbackfn_. If it is not provided, *undefined* is used instead.</p>
       <p>_callbackfn_ is called with three arguments: the value of the element, the index of the element, and the object being traversed.</p>
-      <p>`groupBy` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
-      <p>The range of elements processed by `groupBy` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupBy` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupBy` visits them; elements that are deleted after the call to `groupBy` begins and before being visited are still visited and are either looked up from the prototype or are *undefined*.</p>
-      <p>The return value of `groupBy` is an object that does not inherit from _Object.prototype_.</p>
+      <p>`group` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
+      <p>The range of elements processed by `group` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `group` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `group` visits them; elements that are deleted after the call to `group` begins and before being visited are still visited and are either looked up from the prototype or are *undefined*.</p>
+      <p>The return value of `group` is an object that does not inherit from _Object.prototype_.</p>
     </emu-note>
-    <p>When the `groupBy` method is called with one or two arguments, the following steps are taken:</p>
+    <p>When the `group` method is called with one or two arguments, the following steps are taken:</p>
     <emu-alg>
       1. Let _O_ be ? ToObject(*this* value).
       1. Let _len_ be ? LengthOfArrayLike(_O_).
@@ -52,23 +52,23 @@ location: https://tc39.es/proposal-array-grouping/
       1. Return _obj_.
     </emu-alg>
     <emu-note>
-      <p>The `groupBy` function is intentionally generic; it does not require that its *this* value be an Array object. Therefore it can be transferred to other kinds of objects for use as a method.</p>
+      <p>The `group` function is intentionally generic; it does not require that its *this* value be an Array object. Therefore it can be transferred to other kinds of objects for use as a method.</p>
     </emu-note>
   </emu-clause>
   </ins>
 
   <ins class="block">
   <emu-clause id="sec-array.prototype.groupbymap">
-    <h1>Array.prototype.groupByToMap ( _callbackfn_ [ , _thisArg_ ] )</h1>
+    <h1>Array.prototype.groupToMap ( _callbackfn_ [ , _thisArg_ ] )</h1>
     <emu-note>
-      <p>_callbackfn_ should be a function that accepts three arguments. `groupByToMap` calls _callbackfn_ once for each element in the array, in ascending order, and constructs a new Map of arrays. Each value returned by _callbackfn_ is used as a key in the Map, and the associated element is included in the array in the constructed Map according to this key.</p>
+      <p>_callbackfn_ should be a function that accepts three arguments. `groupToMap` calls _callbackfn_ once for each element in the array, in ascending order, and constructs a new Map of arrays. Each value returned by _callbackfn_ is used as a key in the Map, and the associated element is included in the array in the constructed Map according to this key.</p>
       <p>If a _thisArg_ parameter is provided, it will be used as the *this* value for each invocation of _callbackfn_. If it is not provided, *undefined* is used instead.</p>
       <p>_callbackfn_ is called with three arguments: the value of the element, the index of the element, and the object being traversed.</p>
-      <p>`groupByToMap` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
-      <p>The range of elements processed by `groupByToMap` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupByToMap` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupByToMap` visits them; elements that are deleted after the call to `groupByToMap` begins and before being visited are still visited and are either looked up from the prototype or are *undefined*.</p>
-      <p>The return value of `groupByToMap` is a Map.</p>
+      <p>`groupToMap` does not directly mutate the object on which it is called but the object may be mutated by the calls to _callbackfn_.</p>
+      <p>The range of elements processed by `groupToMap` is set before the first call to _callbackfn_. Elements which are appended to the array after the call to `groupToMap` begins will not be visited by _callbackfn_. If existing elements of the array are changed their value as passed to _callbackfn_ will be the value at the time `groupToMap` visits them; elements that are deleted after the call to `groupToMap` begins and before being visited are still visited and are either looked up from the prototype or are *undefined*.</p>
+      <p>The return value of `groupToMap` is a Map.</p>
     </emu-note>
-    <p>When the `groupByToMap` method is called with one or two arguments, the following steps are taken:</p>
+    <p>When the `groupToMap` method is called with one or two arguments, the following steps are taken:</p>
     <emu-alg>
       1. Let _O_ be ? ToObject(*this* value).
       1. Let _len_ be ? LengthOfArrayLike(_O_).
@@ -90,7 +90,7 @@ location: https://tc39.es/proposal-array-grouping/
       1. Return _map_.
     </emu-alg>
     <emu-note>
-      <p>The `groupByToMap` function is intentionally generic; it does not require that its *this* value be an Array object. Therefore it can be transferred to other kinds of objects for use as a method.</p>
+      <p>The `groupToMap` function is intentionally generic; it does not require that its *this* value be an Array object. Therefore it can be transferred to other kinds of objects for use as a method.</p>
     </emu-note>
   </emu-clause>
 
@@ -130,8 +130,8 @@ location: https://tc39.es/proposal-array-grouping/
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"findIndex"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"flat"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"flatMap"*, *true*).
-      1. <ins>Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"groupBy"*, *true*).</ins>
-      1. <ins>Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"groupByToMap"*, *true*).</ins>
+      1. <ins>Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"group"*, *true*).</ins>
+      1. <ins>Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"groupToMap"*, *true*).</ins>
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"includes"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"keys"*, *true*).
       1. Perform ! CreateDataPropertyOrThrow(_unscopableList_, *"values"*, *true*).
