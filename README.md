@@ -56,6 +56,11 @@ install their implementation, and any sites that depend on their
 behavior would break. We've found some 660 origins that use these
 versions of the Sugar library.
 
+In a similar situation, we renamed the `Array.prototype.flatten`
+proposal to `flat`. Note that we did not rename it to `flattened`
+(though it was considered). We've taken the same approach, renaming
+`groupBy` to `group`.
+
 ## Polyfill
 
 - A polyfill is available in the [core-js] library. You can find it in the [ECMAScript proposals section][core-js-section].
