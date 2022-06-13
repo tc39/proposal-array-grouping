@@ -22,7 +22,7 @@ location: https://tc39.es/proposal-array-grouping/
   <h1>Properties of the Array Prototype Object (<a href="https://tc39.es/ecma262/#sec-properties-of-the-array-prototype-object">22.1.3</a>)</h1>
 
   <ins class="block">
-  <emu-clause id="sec-array.prototype.groupby">
+  <emu-clause id="sec-array.prototype.group">
     <h1>Array.prototype.group ( _callbackfn_ [ , _thisArg_ ] )</h1>
     <emu-note>
       <p>_callbackfn_ should be a function that accepts three arguments. `group` calls _callbackfn_ once for each element in the array, in ascending order, and constructs a new object of arrays. Each value returned by _callbackfn_ is coerced to a property key, and the associated element is included in the array in the constructed object according to this property key.</p>
@@ -58,7 +58,7 @@ location: https://tc39.es/proposal-array-grouping/
   </ins>
 
   <ins class="block">
-  <emu-clause id="sec-array.prototype.groupbymap">
+  <emu-clause id="sec-array.prototype.grouptomap">
     <h1>Array.prototype.groupToMap ( _callbackfn_ [ , _thisArg_ ] )</h1>
     <emu-note>
       <p>_callbackfn_ should be a function that accepts three arguments. `groupToMap` calls _callbackfn_ once for each element in the array, in ascending order, and constructs a new Map of arrays. Each value returned by _callbackfn_ is used as a key in the Map, and the associated element is included in the array in the constructed Map according to this key.</p>
