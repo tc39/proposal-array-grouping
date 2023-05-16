@@ -30,7 +30,7 @@ array.groupToMap((num, index, array) => {
 
 ## Status
 
-Current [Stage](https://tc39.es/process-document/): 3
+Current [Stage](https://tc39.es/process-document/): 3, **but there are [webcompat issues that necessitate a change](https://github.com/tc39/proposal-array-grouping/issues/44)**
 
 ## Motivation
 
