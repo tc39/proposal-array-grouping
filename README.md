@@ -26,7 +26,8 @@ array.groupToMap((num, index, array) => {
 
 ## Champions
 
-- Justin Ridgewell ([@jridgewell](https://github.com/jridgewell/))
+- Justin Ridgewell ([@jridgewell](https://github.com/jridgewell))
+- Jordan Harband ([@ljharb](https://github.com/ljharb))
 
 ## Status
 
