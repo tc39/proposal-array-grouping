@@ -1,26 +1,24 @@
 # proposal-array-grouping
 
-A proposal to make grouping of items in an array easier.
+A proposal to make grouping of items in an array (and iterables) easier.
 
 ```js
 const array = [1, 2, 3, 4, 5];
 
-// group groups items by arbitrary key.
+// `Object.groupBy` groups items by arbitrary key.
 // In this case, we're grouping by even/odd keys
-array.group((num, index, array) => {
+Object.groupBy(array, (num, index) => {
   return num % 2 === 0 ? 'even': 'odd';
 });
-
 // =>  { odd: [1, 3, 5], even: [2, 4] }
 
-// groupToMap returns items in a Map, and is useful for grouping using
-// an object key.
+// `Map.groupBy` returns items in a Map, and is useful for grouping
+// using an object key.
 const odd  = { odd: true };
 const even = { even: true };
-array.groupToMap((num, index, array) => {
+Map.groupBy(array, (num, index) => {
   return num % 2 === 0 ? even: odd;
 });
-
 // =>  Map { {odd: true}: [1, 3, 5], {even: true}: [2, 4] }
 ```
 
@@ -31,7 +29,7 @@ array.groupToMap((num, index, array) => {
 
 ## Status
 
-Current [Stage](https://tc39.es/process-document/): 3, **but there are [webcompat issues that necessitate a change](https://github.com/tc39/proposal-array-grouping/issues/44)**
+Current [Stage](https://tc39.es/process-document/): 2
 
 ## Motivation
 
@@ -41,30 +39,35 @@ thought of map-group-reduce). The ability to combine like data into
 groups allows developers to compute higher order datasets, like the
 average age of a cohort or daily LCP values for a webpage.
 
-Two methods are offered, `group` and `groupToMap`. The first returns a
-null-prototype object, which allows ergonomic destructuring and prevents
-accidental collisions with global Object properties. The second returns
-a regular `Map` instance, which allows grouping on complex key types
-(imagine a compound key or [tuple]).
+Two methods are offered, `Object.groupby` and `Map.groupBy`. The first
+returns a null-prototype object, which allows ergonomic destructuring
+and prevents accidental collisions with global Object properties. The
+second returns a regular `Map` instance, which allows grouping on
+complex key types (imagine a compound key or [tuple]).
 
-## Why `group` and not `groupBy`?
+## Why static methods?
 
 We've [found][sugar-bug] a web compatibility issue with the name
-`groupBy`. The [Sugar][sugar] library until v1.4.0 conditionally
-monkey-patches `Array.prototype` with an incompatible method. By
-providing a native `groupBy`, these versions of Sugar would fail to
-install their implementation, and any sites that depend on their
+`Array.prototype.groupBy`. The [Sugar][sugar] library until v1.4.0
+conditionally monkey-patches `Array.prototype` with an incompatible
+method. By providing a native `groupBy`, these versions of Sugar would
+fail to install their implementation, and any sites that depend on their
 behavior would break. We've found some 660 origins that use these
 versions of the Sugar library.
 
-In a similar situation, we renamed the `Array.prototype.flatten`
-proposal to `flat`. Note that we did not rename it to `flattened`
-(though it was considered). We've taken the same approach, renaming
-`groupBy` to `group`.
+We then attempted the name `Array.prototype.group`, but this ran into
+[code that uses an array as an arbitrary hashmap][arraymap-bug]. Because
+these bugs are exceptionally difficult to detect (it requires devs to
+detect and know how to report the bug to us), the committee didn't want
+to attempt another prototype method name. Instead we chose to use static
+method, which we believe is unorthodox enough to not risk a web
+compatibility issue. This also gives us a nice way to support Records
+and Tuples in the future.
 
 ## Polyfill
 
-- A polyfill is available in the [core-js] library. You can find it in the [ECMAScript proposals section][core-js-section].
+- A polyfill is available in the [core-js] library. You can find it in
+  the [ECMAScript proposals section][core-js-section].
 
 ## Related
 
@@ -78,3 +81,4 @@ proposal to `flat`. Note that we did not rename it to `flattened`
 [lodash-npm]: https://www.npmjs.com/package/lodash.groupby
 [sugar]: https://sugarjs.com/
 [sugar-bug]: https://github.com/tc39/proposal-array-grouping/issues/37
+[arraymap-bug]: https://github.com/tc39/proposal-array-grouping/issues/44
