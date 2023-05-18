@@ -6,8 +6,8 @@
 <pre class="metadata">
 title: Array Grouping
 status: proposal
-stage: 3
-contributors: Justin Ridgewell
+stage: 2
+contributors: Justin Ridgewell, Jordan Harband
 location: https://tc39.es/proposal-array-grouping/
 </pre>
 
