@@ -214,7 +214,7 @@ Search.prototype.search = function (searchString) {
   if (/^[\d.]*$/.test(searchString)) {
     results = this.biblio.clauses
       .filter(clause => clause.number.substring(0, searchString.length) === searchString)
-      .map(clause => ({ entry: clause }));
+      .map(clause => ({ key: getKey(clause), entry: clause }));
   } else {
     results = [];
 
@@ -754,6 +754,7 @@ let referencePane = {
 
     let $spacer = document.createElement('div');
     $spacer.setAttribute('id', 'references-pane-spacer');
+    $spacer.classList.add('menu-spacer');
 
     this.$pane = document.createElement('div');
     this.$pane.setAttribute('id', 'references-pane');
@@ -902,6 +903,7 @@ let Toolbox = {
       e.preventDefault();
       e.stopPropagation();
       menu.togglePinEntry(this.entry.id);
+      this.$pinLink.textContent = menu._pinnedIds[this.entry.id] ? 'Unpin' : 'Pin';
     });
 
     this.$refsLink = document.createElement('a');
@@ -922,6 +924,7 @@ let Toolbox = {
     sdoBox.deactivate();
     this.active = true;
     this.entry = entry;
+    this.$pinLink.textContent = menu._pinnedIds[entry.id] ? 'Unpin' : 'Pin';
     this.$outer.classList.add('active');
     this.top = el.offsetTop - this.$outer.offsetHeight;
     this.left = el.offsetLeft - 10;
@@ -1117,41 +1120,245 @@ document.addEventListener('DOMContentLoaded', () => {
   referencePane.init();
 });
 
-'use strict';
-let decimalBullet = Array.from({ length: 100 }, (a, i) => '' + (i + 1));
-let alphaBullet = Array.from({ length: 26 }, (a, i) => String.fromCharCode('a'.charCodeAt(0) + i));
+// preserve state during navigation
 
-// prettier-ignore
-let romanBullet = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx', 'xxi', 'xxii', 'xxiii', 'xxiv', 'xxv'];
-// prettier-ignore
-let bullets = [decimalBullet, alphaBullet, romanBullet, decimalBullet, alphaBullet, romanBullet];
-
-function addStepNumberText(ol, parentIndex) {
-  for (let i = 0; i < ol.children.length; ++i) {
-    let child = ol.children[i];
-    let index = parentIndex.concat([i]);
-    let applicable = bullets[Math.min(index.length - 1, 5)];
-    let span = document.createElement('span');
-    span.textContent = (applicable[i] || '?') + '. ';
-    span.style.fontSize = '0';
-    span.setAttribute('aria-hidden', 'true');
-    child.prepend(span);
-    let sublist = child.querySelector('ol');
-    if (sublist != null) {
-      addStepNumberText(sublist, index);
+function getTocPath(li) {
+  let path = [];
+  let pointer = li;
+  while (true) {
+    let parent = pointer.parentElement;
+    if (parent == null) {
+      return null;
+    }
+    let index = [].indexOf.call(parent.children, pointer);
+    if (index == -1) {
+      return null;
+    }
+    path.unshift(index);
+    pointer = parent.parentElement;
+    if (pointer == null) {
+      return null;
+    }
+    if (pointer.id === 'menu-toc') {
+      break;
+    }
+    if (pointer.tagName !== 'LI') {
+      return null;
     }
   }
+  return path;
 }
+
+function activateTocPath(path) {
+  try {
+    let pointer = document.getElementById('menu-toc');
+    for (let index of path) {
+      pointer = pointer.querySelector('ol').children[index];
+    }
+    pointer.classList.add('active');
+  } catch (e) {
+    // pass
+  }
+}
+
+function getActiveTocPaths() {
+  return [...menu.$menu.querySelectorAll('.active')].map(getTocPath).filter(p => p != null);
+}
+
+function loadStateFromSessionStorage() {
+  if (!window.sessionStorage || typeof menu === 'undefined' || window.navigating) {
+    return;
+  }
+  if (sessionStorage.referencePaneState != null) {
+    let state = JSON.parse(sessionStorage.referencePaneState);
+    if (state != null) {
+      if (state.type === 'ref') {
+        let entry = menu.search.biblio.byId[state.id];
+        if (entry != null) {
+          referencePane.showReferencesFor(entry);
+        }
+      } else if (state.type === 'sdo') {
+        let sdos = sdoMap[state.id];
+        if (sdos != null) {
+          referencePane.$headerText.innerHTML = state.html;
+          referencePane.showSDOsBody(sdos, state.id);
+        }
+      }
+      delete sessionStorage.referencePaneState;
+    }
+  }
+
+  if (sessionStorage.activeTocPaths != null) {
+    document
+      .getElementById('menu-toc')
+      .querySelectorAll('.active')
+      .forEach(e => {
+        e.classList.remove('active');
+      });
+    let active = JSON.parse(sessionStorage.activeTocPaths);
+    active.forEach(activateTocPath);
+    delete sessionStorage.activeTocPaths;
+  }
+
+  if (sessionStorage.searchValue != null) {
+    let value = JSON.parse(sessionStorage.searchValue);
+    menu.search.$searchBox.value = value;
+    menu.search.search(value);
+    delete sessionStorage.searchValue;
+  }
+
+  if (sessionStorage.tocScroll != null) {
+    let tocScroll = JSON.parse(sessionStorage.tocScroll);
+    menu.$toc.scrollTop = tocScroll;
+    delete sessionStorage.tocScroll;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadStateFromSessionStorage);
+
+window.addEventListener('pageshow', loadStateFromSessionStorage);
+
+window.addEventListener('beforeunload', () => {
+  if (!window.sessionStorage || typeof menu === 'undefined') {
+    return;
+  }
+  sessionStorage.referencePaneState = JSON.stringify(referencePane.state || null);
+  sessionStorage.activeTocPaths = JSON.stringify(getActiveTocPaths());
+  sessionStorage.searchValue = JSON.stringify(menu.search.$searchBox.value);
+  sessionStorage.tocScroll = JSON.stringify(menu.$toc.scrollTop);
+});
+
+'use strict';
+
+// Manually prefix algorithm step list items with hidden counter representations
+// corresponding with their markers so they get selected and copied with content.
+// We read list-style-type to avoid divergence with the style sheet, but
+// for efficiency assume that all lists at the same nesting depth use the same
+// style (except for those associated with replacement steps).
+// We also precompute some initial items for each supported style type.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/
+
+const lowerLetters = Array.from({ length: 26 }, (_, i) =>
+  String.fromCharCode('a'.charCodeAt(0) + i)
+);
+// Implement the lower-alpha 'alphabetic' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-alphabetic
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#alphabetic-system
+const lowerAlphaTextForIndex = i => {
+  let S = '';
+  for (const N = lowerLetters.length; i >= 0; i--) {
+    S = lowerLetters[i % N] + S;
+    i = Math.floor(i / N);
+  }
+  return S;
+};
+
+const weightedLowerRomanSymbols = Object.entries({
+  m: 1000,
+  cm: 900,
+  d: 500,
+  cd: 400,
+  c: 100,
+  xc: 90,
+  l: 50,
+  xl: 40,
+  x: 10,
+  ix: 9,
+  v: 5,
+  iv: 4,
+  i: 1,
+});
+// Implement the lower-roman 'additive' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-numeric
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#additive-system
+const lowerRomanTextForIndex = i => {
+  let value = i + 1;
+  let S = '';
+  for (const [symbol, weight] of weightedLowerRomanSymbols) {
+    if (!value) break;
+    if (weight > value) continue;
+    const reps = Math.floor(value / weight);
+    S += symbol.repeat(reps);
+    value -= weight * reps;
+  }
+  return S;
+};
+
+// Memoize pure index-to-text functions with an exposed cache for fast retrieval.
+const makeCounter = (pureGetTextForIndex, precomputeCount = 30) => {
+  const cache = Array.from({ length: precomputeCount }, (_, i) => pureGetTextForIndex(i));
+  const getTextForIndex = i => {
+    if (i >= cache.length) cache[i] = pureGetTextForIndex(i);
+    return cache[i];
+  };
+  return { getTextForIndex, cache };
+};
+
+const counterByStyle = {
+  __proto__: null,
+  decimal: makeCounter(i => String(i + 1)),
+  'lower-alpha': makeCounter(lowerAlphaTextForIndex),
+  'upper-alpha': makeCounter(i => lowerAlphaTextForIndex(i).toUpperCase()),
+  'lower-roman': makeCounter(lowerRomanTextForIndex),
+  'upper-roman': makeCounter(i => lowerRomanTextForIndex(i).toUpperCase()),
+};
+const fallbackCounter = makeCounter(() => '?');
+const counterByDepth = [];
+
+function addStepNumberText(
+  ol,
+  depth = 0,
+  special = [...ol.classList].some(c => c.startsWith('nested-'))
+) {
+  let counter = !special && counterByDepth[depth];
+  if (!counter) {
+    const counterStyle = getComputedStyle(ol)['list-style-type'];
+    counter = counterByStyle[counterStyle];
+    if (!counter) {
+      console.warn('unsupported list-style-type', {
+        ol,
+        counterStyle,
+        id: ol.closest('[id]')?.getAttribute('id'),
+      });
+      counterByStyle[counterStyle] = fallbackCounter;
+      counter = fallbackCounter;
+    }
+    if (!special) {
+      counterByDepth[depth] = counter;
+    }
+  }
+  const { cache, getTextForIndex } = counter;
+  let i = (Number(ol.getAttribute('start')) || 1) - 1;
+  for (const li of ol.children) {
+    const marker = document.createElement('span');
+    marker.textContent = `${i < cache.length ? cache[i] : getTextForIndex(i)}. `;
+    marker.setAttribute('aria-hidden', 'true');
+    const attributesContainer = li.querySelector('.attributes-tag');
+    if (attributesContainer == null) {
+      li.prepend(marker);
+    } else {
+      attributesContainer.insertAdjacentElement('afterend', marker);
+    }
+    for (const sublist of li.querySelectorAll(':scope > ol')) {
+      addStepNumberText(sublist, depth + 1, special);
+    }
+    i++;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('emu-alg > ol').forEach(ol => {
-    addStepNumberText(ol, []);
+    addStepNumberText(ol);
   });
 });
 
 let sdoMap = JSON.parse(`{}`);
-let biblio = JSON.parse(`{"refsByClause":{"sec-object.groupby":["_ref_0","_ref_1","_ref_2"],"sec-map.groupby":["_ref_3","_ref_4","_ref_5"],"sec-group-by":["_ref_6","_ref_7","_ref_8","_ref_9","_ref_10","_ref_11","_ref_12","_ref_13","_ref_14","_ref_15","_ref_16","_ref_17"],"sec-add-value-to-keyed-group":["_ref_18"]},"entries":[{"type":"clause","id":"sec-scope","titleHTML":"Scope","number":"1"},{"type":"clause","id":"sec-object.groupby","title":"Object.groupBy ( items, callbackfn )","titleHTML":"Object.groupBy ( <var>items</var>, <var>callbackfn</var> )","number":"2.1"},{"type":"clause","id":"sec-properties-of-the-object-constructor","titleHTML":"Properties of the Object Constructor (20.1.2)","number":"2"},{"type":"clause","id":"sec-map.groupby","title":"Map.groupBy ( items, callbackfn )","titleHTML":"Map.groupBy ( <var>items</var>, <var>callbackfn</var> )","number":"3.1"},{"type":"clause","id":"sec-properties-of-the-map-constructor","titleHTML":"Properties of the Map Constructor (24.1.2)","number":"3"},{"type":"op","aoid":"GroupBy","refId":"sec-group-by"},{"type":"clause","id":"sec-group-by","title":"GroupBy ( items, callbackfn, coercion )","titleHTML":"GroupBy ( <var>items</var>, <var>callbackfn</var>, <var>coercion</var> )","number":"4.1","referencingIds":["_ref_0","_ref_3"]},{"type":"op","aoid":"AddValueToKeyedGroup","refId":"sec-add-value-to-keyed-group"},{"type":"clause","id":"sec-add-value-to-keyed-group","title":"AddValueToKeyedGroup ( groups, key, value )","titleHTML":"AddValueToKeyedGroup ( <var>groups</var>, <var>key</var>, <var>value</var> )","number":"4.2","referencingIds":["_ref_17"]},{"type":"clause","id":"sec-group-by-helpers","titleHTML":"Group By Helpers","number":"4"},{"type":"clause","id":"sec-copyright-and-software-license","title":"Copyright & Software License","titleHTML":"Copyright &amp; Software License","number":"A"}]}`);
+let biblio = JSON.parse(`{"refsByClause":{"sec-object.groupby":["_ref_0"],"sec-map.groupby":["_ref_1"],"sec-group-by":["_ref_2"]},"entries":[{"type":"clause","id":"sec-scope","titleHTML":"Scope","number":"1"},{"type":"clause","id":"sec-object.groupby","title":"Object.groupBy ( items, callbackfn )","titleHTML":"Object.groupBy ( <var>items</var>, <var>callbackfn</var> )","number":"2.1"},{"type":"clause","id":"sec-properties-of-the-object-constructor","titleHTML":"Properties of the Object Constructor (20.1.2)","number":"2"},{"type":"clause","id":"sec-map.groupby","title":"Map.groupBy ( items, callbackfn )","titleHTML":"Map.groupBy ( <var>items</var>, <var>callbackfn</var> )","number":"3.1"},{"type":"clause","id":"sec-properties-of-the-map-constructor","titleHTML":"Properties of the Map Constructor (24.1.2)","number":"3"},{"type":"op","aoid":"GroupBy","refId":"sec-group-by"},{"type":"clause","id":"sec-group-by","title":"GroupBy ( items, callbackfn, coercion )","titleHTML":"GroupBy ( <var>items</var>, <var>callbackfn</var>, <var>coercion</var> )","number":"4.1","referencingIds":["_ref_0","_ref_1"]},{"type":"op","aoid":"AddValueToKeyedGroup","refId":"sec-add-value-to-keyed-group"},{"type":"clause","id":"sec-add-value-to-keyed-group","title":"AddValueToKeyedGroup ( groups, key, value )","titleHTML":"AddValueToKeyedGroup ( <var>groups</var>, <var>key</var>, <var>value</var> )","number":"4.2","referencingIds":["_ref_2"]},{"type":"clause","id":"sec-group-by-helpers","titleHTML":"Group By Helpers","number":"4"},{"type":"clause","id":"sec-copyright-and-software-license","title":"Copyright & Software License","titleHTML":"Copyright &amp; Software License","number":"A"}]}`);
 ;let usesMultipage = false</script><style>body {
   display: flex;
+  word-wrap: break-word;
   font-size: 18px;
   line-height: 1.5;
   font-family: Cambria, Palatino Linotype, Palatino, Liberation Serif, serif;
@@ -1255,6 +1462,10 @@ var {
   transition: background-color 0.25s ease;
   cursor: pointer;
 }
+var.field {
+  font: inherit;
+  color: inherit;
+}
 
 var.referenced0 {
   color: inherit;
@@ -1338,6 +1549,10 @@ emu-alg ol.nested-lots ol {
   list-style-type: lower-roman;
 }
 
+emu-alg [aria-hidden='true'] {
+  font-size: 0;
+}
+
 emu-eqn {
   display: block;
   margin-left: 4em;
@@ -1389,7 +1604,7 @@ emu-note > div.note-contents > p:last-of-type {
   margin-bottom: 0;
 }
 
-emu-table td code {
+emu-table:not(.code) td code {
   white-space: normal;
 }
 
@@ -1900,7 +2115,7 @@ tr.del > td {
   z-index: 2;
 }
 
-#menu-spacer {
+.menu-spacer {
   flex-basis: 33%;
   max-width: 500px;
   flex-grow: 0;
@@ -2315,11 +2530,6 @@ li.menu-search-result-term:before {
   overflow-y: auto;
 }
 
-#references-pane-spacer {
-  flex-basis: 33%;
-  max-width: 500px;
-}
-
 #references-pane {
   flex-grow: 1;
   overflow: hidden;
@@ -2337,6 +2547,10 @@ li.menu-search-result-term:before {
   cursor: pointer;
 }
 
+#references-pane table tbody {
+  vertical-align: baseline;
+}
+
 #references-pane table tr td:first-child {
   text-align: right;
   padding-right: 5px;
@@ -2349,19 +2563,19 @@ li.menu-search-result-term:before {
 }
 
 [normative-optional],
+[deprecated],
 [legacy] {
   border-left: 5px solid #ff6600;
   padding: 0.5em;
-  display: block;
   background: #ffeedd;
 }
 
-.clause-attributes-tag {
+.attributes-tag {
   text-transform: uppercase;
   color: #884400;
 }
 
-.clause-attributes-tag a {
+.attributes-tag a {
   color: #884400;
 }
 
@@ -2414,7 +2628,7 @@ li.menu-search-result-term:before {
 </ul></div><div id="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; stroke:currentColor" viewBox="0 0 120 120">
       <title>Menu</title>
       <path stroke-width="10" stroke-linecap="round" d="M30,60 h60  M30,30 m0,5 h60  M30,90 m0,-5 h60"></path>
-    </svg></div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-scope" title="Scope"><span class="secnum">1</span> Scope</a></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-object-constructor" title="Properties of the Object Constructor (20.1.2)"><span class="secnum">2</span> Properties of the Object Constructor (20.1.2)</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-object.groupby" title="Object.groupBy ( items, callbackfn )"><span class="secnum">2.1</span> Object.groupBy ( <var>items</var>, <var>callbackfn</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-map-constructor" title="Properties of the Map Constructor (24.1.2)"><span class="secnum">3</span> Properties of the Map Constructor (24.1.2)</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-map.groupby" title="Map.groupBy ( items, callbackfn )"><span class="secnum">3.1</span> Map.groupBy ( <var>items</var>, <var>callbackfn</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-group-by-helpers" title="Group By Helpers"><span class="secnum">4</span> Group By Helpers</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-group-by" title="GroupBy ( items, callbackfn, coercion )"><span class="secnum">4.1</span> GroupBy ( <var>items</var>, <var>callbackfn</var>, <var>coercion</var> )</a></li><li><span class="item-toggle-none"></span><a href="#sec-add-value-to-keyed-group" title="AddValueToKeyedGroup ( groups, key, value )"><span class="secnum">4.2</span> AddValueToKeyedGroup ( <var>groups</var>, <var>key</var>, <var>value</var> )</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-copyright-and-software-license" title="Copyright &amp; Software License"><span class="secnum">A</span> Copyright &amp; Software License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 2 Draft / May 31, 2023</h1><h1 class="title">Array Grouping</h1>
+    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-scope" title="Scope"><span class="secnum">1</span> Scope</a></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-object-constructor" title="Properties of the Object Constructor (20.1.2)"><span class="secnum">2</span> Properties of the Object Constructor (20.1.2)</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-object.groupby" title="Object.groupBy ( items, callbackfn )"><span class="secnum">2.1</span> Object.groupBy ( <var>items</var>, <var>callbackfn</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-map-constructor" title="Properties of the Map Constructor (24.1.2)"><span class="secnum">3</span> Properties of the Map Constructor (24.1.2)</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-map.groupby" title="Map.groupBy ( items, callbackfn )"><span class="secnum">3.1</span> Map.groupBy ( <var>items</var>, <var>callbackfn</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-group-by-helpers" title="Group By Helpers"><span class="secnum">4</span> Group By Helpers</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-group-by" title="GroupBy ( items, callbackfn, coercion )"><span class="secnum">4.1</span> GroupBy ( <var>items</var>, <var>callbackfn</var>, <var>coercion</var> )</a></li><li><span class="item-toggle-none"></span><a href="#sec-add-value-to-keyed-group" title="AddValueToKeyedGroup ( groups, key, value )"><span class="secnum">4.2</span> AddValueToKeyedGroup ( <var>groups</var>, <var>key</var>, <var>value</var> )</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-copyright-and-software-license" title="Copyright &amp; Software License"><span class="secnum">A</span> Copyright &amp; Software License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 2 Draft / May 31, 2023</h1><h1 class="title">Array Grouping</h1>
 
 <emu-clause id="sec-scope">
   <h1><span class="secnum">1</span> Scope</h1>
@@ -2435,7 +2649,7 @@ li.menu-search-result-term:before {
       <p>The return value of <code>groupBy</code> is an object that does not inherit from %Object.prototype%.</p>
     </div></emu-note>
     <p>When the <code>groupBy</code> method is called with two arguments, the following steps are taken:</p>
-    <emu-alg><ol><li>Let <var>groups</var> be ?&nbsp;<emu-xref aoid="GroupBy" id="_ref_0"><a href="#sec-group-by">GroupBy</a></emu-xref>(<var>items</var>, <var>callbackfn</var>, <emu-const>property</emu-const>).</li><li>Let <var>obj</var> be OrdinaryObjectCreate(<emu-val>null</emu-val>).</li><li>For each <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]], [[Elements]] } <var>g</var> of <var>groups</var>, do<ol><li>Let <var>elements</var> be <emu-xref aoid="CreateArrayFromList" id="_ref_1"><a href="https://tc39.es/ecma262/#sec-createarrayfromlist">CreateArrayFromList</a></emu-xref>(<var>g</var>.[[Elements]]).</li><li>Perform !&nbsp;<emu-xref aoid="CreateDataPropertyOrThrow" id="_ref_2"><a href="https://tc39.es/ecma262/#sec-createdatapropertyorthrow">CreateDataPropertyOrThrow</a></emu-xref>(<var>obj</var>, <var>g</var>.[[Key]], <var>elements</var>).</li></ol></li><li>Return <var>obj</var>.</li></ol></emu-alg>
+    <emu-alg><ol><li>Let <var>groups</var> be ?&nbsp;<emu-xref aoid="GroupBy" id="_ref_0"><a href="#sec-group-by">GroupBy</a></emu-xref>(<var>items</var>, <var>callbackfn</var>, <emu-const>property</emu-const>).</li><li>Let <var>obj</var> be OrdinaryObjectCreate(<emu-val>null</emu-val>).</li><li>For each Record { <var class="field">[[Key]]</var>, <var class="field">[[Elements]]</var> } <var>g</var> of <var>groups</var>, do<ol><li>Let <var>elements</var> be CreateArrayFromList(<var>g</var>.<var class="field">[[Elements]]</var>).</li><li>Perform !&nbsp;CreateDataPropertyOrThrow(<var>obj</var>, <var>g</var>.<var class="field">[[Key]]</var>, <var>elements</var>).</li></ol></li><li>Return <var>obj</var>.</li></ol></emu-alg>
   </emu-clause>
   </ins>
 </emu-clause>
@@ -2452,7 +2666,7 @@ li.menu-search-result-term:before {
       <p>The return value of <code>groupBy</code> is a Map.</p>
     </div></emu-note>
     <p>When the <code>groupBy</code> method is called with two arguments, the following steps are taken:</p>
-    <emu-alg><ol><li>Let <var>groups</var> be ?&nbsp;<emu-xref aoid="GroupBy" id="_ref_3"><a href="#sec-group-by">GroupBy</a></emu-xref>(<var>items</var>, <var>callbackfn</var>, <emu-const>zero</emu-const>).</li><li>Let <var>map</var> be !&nbsp;<emu-xref aoid="Construct" id="_ref_4"><a href="https://tc39.es/ecma262/#sec-construct">Construct</a></emu-xref>(<emu-xref href="#sec-map-constructor"><a href="https://tc39.es/ecma262/#sec-map-constructor">%Map%</a></emu-xref>).</li><li>For each <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]], [[Elements]] } <var>g</var> of <var>groups</var>, do<ol><li>Let <var>elements</var> be <emu-xref aoid="CreateArrayFromList" id="_ref_5"><a href="https://tc39.es/ecma262/#sec-createarrayfromlist">CreateArrayFromList</a></emu-xref>(<var>g</var>.[[Elements]]).</li><li>Let <var>entry</var> be the <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]]: <var>g</var>.[[Key]], [[Value]]: <var>elements</var> }.</li><li>Append <var>entry</var> to <var>map</var>.[[MapData]].</li></ol></li><li>Return <var>map</var>.</li></ol></emu-alg>
+    <emu-alg><ol><li>Let <var>groups</var> be ?&nbsp;<emu-xref aoid="GroupBy" id="_ref_1"><a href="#sec-group-by">GroupBy</a></emu-xref>(<var>items</var>, <var>callbackfn</var>, <emu-const>zero</emu-const>).</li><li>Let <var>map</var> be !&nbsp;Construct(%Map%).</li><li>For each Record { <var class="field">[[Key]]</var>, <var class="field">[[Elements]]</var> } <var>g</var> of <var>groups</var>, do<ol><li>Let <var>elements</var> be CreateArrayFromList(<var>g</var>.<var class="field">[[Elements]]</var>).</li><li>Let <var>entry</var> be the Record { <var class="field">[[Key]]</var>: <var>g</var>.<var class="field">[[Key]]</var>, <var class="field">[[Value]]</var>: <var>elements</var> }.</li><li>Append <var>entry</var> to <var>map</var>.<var class="field">[[MapData]]</var>.</li></ol></li><li>Return <var>map</var>.</li></ol></emu-alg>
   </emu-clause>
   </ins>
 </emu-clause>
@@ -2463,16 +2677,16 @@ li.menu-search-result-term:before {
   <ins class="block">
   <emu-clause id="sec-group-by" type="abstract operation" aoid="GroupBy">
     <h1><span class="secnum">4.1</span> GroupBy ( <var>items</var>, <var>callbackfn</var>, <var>coercion</var> )</h1>
-    <p>The abstract operation GroupBy takes arguments <var>items</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>), <var>callbackfn</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>), and <var>coercion</var> (<emu-const>property</emu-const> or <emu-const>zero</emu-const>) and returns either a normal completion containing a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of Records with fields [[Key]] (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>) and [[Elements]] (a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of ECMAScript language values), or a throw completion. It performs the following steps when called:</p>
-    <emu-alg><ol><li>Perform ?&nbsp;<emu-xref aoid="RequireObjectCoercible" id="_ref_6"><a href="https://tc39.es/ecma262/#sec-requireobjectcoercible">RequireObjectCoercible</a></emu-xref>(<var>items</var>).</li><li>If <emu-xref aoid="IsCallable" id="_ref_7"><a href="https://tc39.es/ecma262/#sec-iscallable">IsCallable</a></emu-xref>(<var>callbackfn</var>) is <emu-val>false</emu-val>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>groups</var> be a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li><li>Let <var>iteratorRecord</var> be ?&nbsp;<emu-xref aoid="GetIterator" id="_ref_8"><a href="https://tc39.es/ecma262/#sec-getiterator">GetIterator</a></emu-xref>(<var>items</var>).</li><li>Let <var>k</var> be 0.</li><li>Repeat,<ol><li>If <var>k</var> ≥ 2<sup>53</sup> - 1, then<ol><li>Let <var>error</var> be <emu-xref aoid="ThrowCompletion" id="_ref_9"><a href="https://tc39.es/ecma262/#sec-throwcompletion">ThrowCompletion</a></emu-xref>(a newly created <emu-val>TypeError</emu-val> object).</li><li>Return ?&nbsp;<emu-xref aoid="IteratorClose" id="_ref_10"><a href="https://tc39.es/ecma262/#sec-iteratorclose">IteratorClose</a></emu-xref>(<var>iteratorRecord</var>, <var>error</var>).</li></ol></li><li>Let <var>next</var> be ?&nbsp;<emu-xref aoid="IteratorStep" id="_ref_11"><a href="https://tc39.es/ecma262/#sec-iteratorstep">IteratorStep</a></emu-xref>(<var>iteratorRecord</var>).</li><li>If <var>next</var> is <emu-val>false</emu-val>, then<ol><li>Return <var>groups</var>.</li></ol></li><li>Let <var>value</var> be ?&nbsp;<emu-xref aoid="IteratorValue" id="_ref_12"><a href="https://tc39.es/ecma262/#sec-iteratorvalue">IteratorValue</a></emu-xref>(<var>next</var>).</li><li>Let <var>key</var> be <emu-xref aoid="Completion" id="_ref_13"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">Completion</a></emu-xref>(<emu-xref aoid="Call" id="_ref_14"><a href="https://tc39.es/ecma262/#sec-call">Call</a></emu-xref>(<var>callbackfn</var>, <emu-val>undefined</emu-val>, « <var>value</var>, <emu-xref href="#𝔽"><a href="https://tc39.es/ecma262/#𝔽">𝔽</a></emu-xref>(<var>k</var>) »)).</li><li>IfAbruptCloseIterator(<var>key</var>, <var>iteratorRecord</var>).</li><li>If <var>coercion</var> is <emu-const>property</emu-const>, then<ol><li>Set <var>key</var> to <emu-xref aoid="Completion" id="_ref_15"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">Completion</a></emu-xref>(<emu-xref aoid="ToPropertyKey" id="_ref_16"><a href="https://tc39.es/ecma262/#sec-topropertykey">ToPropertyKey</a></emu-xref>(<var>key</var>)).</li><li>IfAbruptCloseIterator(<var>key</var>, <var>iteratorRecord</var>).</li></ol></li><li>Else,<ol><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: <var>coercion</var> is <emu-const>zero</emu-const>.</li><li>If <var>key</var> is <emu-val>-0</emu-val><sub>𝔽</sub>, set <var>key</var> to <emu-val>+0</emu-val><sub>𝔽</sub>.</li></ol></li><li>Perform <emu-xref aoid="AddValueToKeyedGroup" id="_ref_17"><a href="#sec-add-value-to-keyed-group">AddValueToKeyedGroup</a></emu-xref>(<var>groups</var>, <var>key</var>, <var>value</var>).</li><li>Set <var>k</var> to <var>k</var> + 1.</li></ol></li></ol></emu-alg>
+    <p>The abstract operation GroupBy takes arguments <var>items</var> (an ECMAScript language value), <var>callbackfn</var> (an ECMAScript language value), and <var>coercion</var> (<emu-const>property</emu-const> or <emu-const>zero</emu-const>) and returns either a normal completion containing a List of Records with fields <var class="field">[[Key]]</var> (an ECMAScript language value) and <var class="field">[[Elements]]</var> (a List of ECMAScript language values), or a throw completion. It performs the following steps when called:</p>
+    <emu-alg><ol><li>Perform ?&nbsp;RequireObjectCoercible(<var>items</var>).</li><li>If IsCallable(<var>callbackfn</var>) is <emu-val>false</emu-val>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>groups</var> be a new empty List.</li><li>Let <var>iteratorRecord</var> be ?&nbsp;GetIterator(<var>items</var>).</li><li>Let <var>k</var> be 0.</li><li>Repeat,<ol><li>If <var>k</var> ≥ 2<sup>53</sup> - 1, then<ol><li>Let <var>error</var> be ThrowCompletion(a newly created <emu-val>TypeError</emu-val> object).</li><li>Return ?&nbsp;IteratorClose(<var>iteratorRecord</var>, <var>error</var>).</li></ol></li><li>Let <var>next</var> be ?&nbsp;IteratorStep(<var>iteratorRecord</var>).</li><li>If <var>next</var> is <emu-val>false</emu-val>, then<ol><li>Return <var>groups</var>.</li></ol></li><li>Let <var>value</var> be ?&nbsp;IteratorValue(<var>next</var>).</li><li>Let <var>key</var> be Completion(Call(<var>callbackfn</var>, <emu-val>undefined</emu-val>, « <var>value</var>, 𝔽(<var>k</var>) »)).</li><li>IfAbruptCloseIterator(<var>key</var>, <var>iteratorRecord</var>).</li><li>If <var>coercion</var> is <emu-const>property</emu-const>, then<ol><li>Set <var>key</var> to Completion(ToPropertyKey(<var>key</var>)).</li><li>IfAbruptCloseIterator(<var>key</var>, <var>iteratorRecord</var>).</li></ol></li><li>Else,<ol><li>Assert: <var>coercion</var> is <emu-const>zero</emu-const>.</li><li>If <var>key</var> is <emu-val>-0</emu-val><sub>𝔽</sub>, set <var>key</var> to <emu-val>+0</emu-val><sub>𝔽</sub>.</li></ol></li><li>Perform <emu-xref aoid="AddValueToKeyedGroup" id="_ref_2"><a href="#sec-add-value-to-keyed-group">AddValueToKeyedGroup</a></emu-xref>(<var>groups</var>, <var>key</var>, <var>value</var>).</li><li>Set <var>k</var> to <var>k</var> + 1.</li></ol></li></ol></emu-alg>
   </emu-clause>
   </ins>
 
   <ins class="block">
   <emu-clause id="sec-add-value-to-keyed-group" type="abstract operation" aoid="AddValueToKeyedGroup">
     <h1><span class="secnum">4.2</span> AddValueToKeyedGroup ( <var>groups</var>, <var>key</var>, <var>value</var> )</h1>
-    <p>The abstract operation AddValueToKeyedGroup takes arguments <var>groups</var> (a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of Records that have [[Key]] and [[Elements]] fields), <var>key</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>), and <var>value</var> (an <emu-xref href="#sec-ecmascript-language-types"><a href="https://tc39.es/ecma262/#sec-ecmascript-language-types">ECMAScript language value</a></emu-xref>) and returns <emu-const>unused</emu-const>. It performs the following steps when called:</p>
-    <emu-alg><ol><li>For each <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]], [[Elements]] } <var>g</var> of <var>groups</var>, do<ol><li>If <emu-xref aoid="SameValue" id="_ref_18"><a href="https://tc39.es/ecma262/#sec-samevalue">SameValue</a></emu-xref>(<var>g</var>.[[Key]], <var>key</var>) is <emu-val>true</emu-val>, then<ol><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: exactly one element of <var>groups</var> meets this criteria.</li><li>Append <var>value</var> to <var>g</var>.[[Elements]].</li><li>Return <emu-const>unused</emu-const>.</li></ol></li></ol></li><li>Let <var>group</var> be the <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]]: <var>key</var>, [[Elements]]: « <var>value</var> » }.</li><li>Append <var>group</var> to <var>groups</var>.</li><li>Return <emu-const>unused</emu-const>.</li></ol></emu-alg>
+    <p>The abstract operation AddValueToKeyedGroup takes arguments <var>groups</var> (a List of Records that have <var class="field">[[Key]]</var> and <var class="field">[[Elements]]</var> fields), <var>key</var> (an ECMAScript language value), and <var>value</var> (an ECMAScript language value) and returns <emu-const>unused</emu-const>. It performs the following steps when called:</p>
+    <emu-alg><ol><li>For each Record { <var class="field">[[Key]]</var>, <var class="field">[[Elements]]</var> } <var>g</var> of <var>groups</var>, do<ol><li>If SameValue(<var>g</var>.<var class="field">[[Key]]</var>, <var>key</var>) is <emu-val>true</emu-val>, then<ol><li>Assert: exactly one element of <var>groups</var> meets this criteria.</li><li>Append <var>value</var> to <var>g</var>.<var class="field">[[Elements]]</var>.</li><li>Return <emu-const>unused</emu-const>.</li></ol></li></ol></li><li>Let <var>group</var> be the Record { <var class="field">[[Key]]</var>: <var>key</var>, <var class="field">[[Elements]]</var>: « <var>value</var> » }.</li><li>Append <var>group</var> to <var>groups</var>.</li><li>Return <emu-const>unused</emu-const>.</li></ol></emu-alg>
   </emu-clause>
   </ins>
 </emu-clause><emu-annex id="sec-copyright-and-software-license">
