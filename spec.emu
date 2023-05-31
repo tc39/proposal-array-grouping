@@ -60,7 +60,7 @@ location: https://tc39.es/proposal-array-grouping/
       1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
         1. Let _elements_ be CreateArrayFromList(_g_.[[Elements]]).
         1. Let _entry_ be the Record { [[Key]]: _g_.[[Key]], [[Value]]: _elements_ }.
-        1. Append _entry_ as the last element of _map_.[[MapData]].
+        1. Append _entry_ to _map_.[[MapData]].
       1. Return _map_.
     </emu-alg>
   </emu-clause>
@@ -124,10 +124,10 @@ location: https://tc39.es/proposal-array-grouping/
       1. For each Record { [[Key]], [[Elements]] } _g_ of _groups_, do
         1. If SameValue(_g_.[[Key]], _key_) is *true*, then
           1. Assert: exactly one element of _groups_ meets this criteria.
-          1. Append _value_ as the last element of _g_.[[Elements]].
+          1. Append _value_ to _g_.[[Elements]].
           1. Return ~unused~.
       1. Let _group_ be the Record { [[Key]]: _key_, [[Elements]]: &laquo; _value_ &raquo; }.
-      1. Append _group_ as the last element of _groups_.
+      1. Append _group_ to _groups_.
       1. Return ~unused~.
     </emu-alg>
   </emu-clause>
