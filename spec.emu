@@ -76,7 +76,7 @@ location: https://tc39.es/proposal-array-grouping/
       GroupBy (
         _items_: an ECMAScript language value,
         _callbackfn_: an ECMAScript language value,
-        _coercion_: ~property~ or ~zero~,
+        _keyCoercion_: ~property~ or ~zero~,
       ): either a normal completion containing a List of Records with fields [[Key]] (an ECMAScript language value) and [[Elements]] (a List of ECMAScript language values), or a throw completion
     </h1>
     <dl class="header">
@@ -97,11 +97,11 @@ location: https://tc39.es/proposal-array-grouping/
         1. Let _value_ be ? IteratorValue(_next_).
         1. Let _key_ be Completion(Call(_callbackfn_, *undefined*, &laquo; _value_, 𝔽(_k_) &raquo;)).
         1. IfAbruptCloseIterator(_key_, _iteratorRecord_).
-        1. If _coercion_ is ~property~, then
+        1. If _keyCoercion_ is ~property~, then
           1. Set _key_ to Completion(ToPropertyKey(_key_)).
           1. IfAbruptCloseIterator(_key_, _iteratorRecord_).
         1. Else,
-          1. Assert: _coercion_ is ~zero~.
+          1. Assert: _keyCoercion_ is ~zero~.
           1. If _key_ is *-0*<sub>𝔽</sub>, set _key_ to *+0*<sub>𝔽</sub>.
         1. Perform AddValueToKeyedGroup(_groups_, _key_, _value_).
         1. Set _k_ to _k_ + 1.
