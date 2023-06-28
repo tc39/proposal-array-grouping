@@ -39,7 +39,7 @@ thought of map-group-reduce). The ability to combine like data into
 groups allows developers to compute higher order datasets, like the
 average age of a cohort or daily LCP values for a webpage.
 
-Two methods are offered, `Object.groupby` and `Map.groupBy`. The first
+Two methods are offered, `Object.groupBy` and `Map.groupBy`. The first
 returns a null-prototype object, which allows ergonomic destructuring
 and prevents accidental collisions with global Object properties. The
 second returns a regular `Map` instance, which allows grouping on
