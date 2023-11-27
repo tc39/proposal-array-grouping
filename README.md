@@ -1,5 +1,7 @@
 # proposal-array-grouping
 
+Note: this proposal is now [at stage 4](https://github.com/tc39/proposals/commit/e11ea25d41c8ab28b6632b5d355359dcb528ee6f). See the spec PR here: https://github.com/tc39/ecma262/pull/3176
+
 A proposal to make grouping of items in an array (and iterables) easier.
 
 ```js
@@ -29,7 +31,7 @@ Map.groupBy(array, (num, index) => {
 
 ## Status
 
-Current [Stage](https://tc39.es/process-document/): 3
+Current [Stage](https://tc39.es/process-document/): 4
 
 ## Motivation
 
